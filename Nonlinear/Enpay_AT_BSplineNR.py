@@ -242,10 +242,10 @@ Btang= (Bpost[1].Norm()**2+Bpost[2].Norm()**2)**0.5
 
 print('...')
 
-#p_e=3159.0*(Bpost.Norm())**2.074
+""" #p_e=3159.0*(Bpost.Norm())**2.074
 p_e = 3159.0*(Btang)**2.074
 P_eps=Integrate(p_e,mesh, order=5, definedon=defon)
-print('P_eps=',1e3*round(P_eps,4), 'mW')
+print('P_eps=',1e3*round(P_eps,4), 'mW') """
 
 #p_narrow= Kf * kappa/24 *(omega*d)**2 *(Bpost.Norm())**2 #vjerojatno treba ići kroz Kf
 p_narrow= Kf * kappa/24 *(omega*d)**2 *(Btang)**2 #vjerojatno treba ići kroz Kf

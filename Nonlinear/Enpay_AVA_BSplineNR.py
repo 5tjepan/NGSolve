@@ -25,12 +25,12 @@ def MakeGeometry():
     front= Plane(Pnt(tocx,tocy,-0.1), Vec(-1,0,0) ).bc("front")#
     right= Plane(Pnt(tocx,tocy,-0.1), Vec(0,-1,0) ).bc("right")
     bot  = Plane (Pnt(tocx,tocy,-0.1), Vec(0,0,-1) ).bc("bot")
-    back = Plane (Pnt(0.005,0.02,0.1), Vec(1, 0,0) ).bc("back").maxh(0.002)
+    back = Plane (Pnt(0.005,0.02,0.1), Vec(1, 0,0) ).bc("back").maxh(0.0022)
     left = Plane (Pnt(0.005,0.02,0.1), Vec(0,1,0) ).bc("left")
     top  = Plane (Pnt(0.005,0.02,0.1), Vec(0,0, 1) ).bc("top")
     core = left * right * front * back * bot * top
     #core = OrthoBrick(Pnt(-0.05,-0.05,-0.2),Pnt(0.05,0.05,0.2))
-    core.maxh(0.002) 
+    core.maxh(0.0028) 
     #front.maxh(0.01)
     core.mat("core")
     
@@ -68,8 +68,8 @@ print(mesh.GetBoundaries())
 ########## HBcurve --- BSpline
 mu0=4*pi*1e-7
 
-B_ref=[0.0, 0.04, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.74, 1.77, 1000]
-H_ref=[0.0, 3.5, 5.0, 7.6, 10.0, 12.07, 14.08, 16.0, 17.75, 19.42, 21.05, 22.64, 24.16, 25.76, 27.98, 29.66, 32.05, 35.33, 40.06, 47.17, 58.35, 77.19, 107.0, 160.0, 270.0, 1000/mu0]
+B_ref=[0.0, 0.04, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 1.83, 1000]
+H_ref=[0.0, 3.5, 5.0, 7.6, 10.0, 12.07, 14.08, 16.0, 17.75, 19.42, 21.05, 22.64, 24.16, 25.76, 27.98, 29.66, 32.05, 35.33, 40.06, 47.17, 58.35, 77.19, 113.0, 196.0, 395.0, 800, 1000/mu0]
 
 HBcurve = BSpline(2, [0]+list(B_ref), list(H_ref)) #ovo bi trebala biti instanca klase BSpline
 diffHB= HBcurve.Differentiate() #HBcurve.Differentiate() metoda daje objekt klase BSpline
@@ -115,11 +115,11 @@ def updateHCurlRegionOrder(fes, p, mat):
 graddom = [True if mat == "core" else False for mat in mesh.GetMaterials()]
 fsU = HCurl(mesh, order=0, dirichlet="outer|outright|outfront", complex=True, nograds = False)#, gradientdomains = graddom)
 
-updateHCurlRegionOrder(fsU, 0, "core")
+updateHCurlRegionOrder(fsU, 2, "core")
 #------------
 
 #fsU = HCurl(mesh, order=0, dirichlet="outer", complex=True, nograds = False)
-fsV = H1(mesh, order=2, dirichlet='outright', definedon='core', complex=True) #bez right!
+fsV = H1(mesh, order=1, dirichlet='outright', definedon='core', complex=True) #bez right!
 fes=fsU*fsV
 mvp, esp = fes.TrialFunction()
 alpha, phi = fes.TestFunction()
@@ -151,16 +151,16 @@ errorlist=[]
 p=1.0
 
 
-for i in range(1,2):
+for i in range(1,8):
     print(f"####iteration i={i}")
     
     print('Babs=',Babs(mesh(0,0)))
     
-    relyz= 160 + 1j*omega*kappa*d**2*1/12 #pazi, kappa_y doprinosi rel_z i obratno  
-    dHdByz= 160 + 1j*omega*kappa*d**2*1/12
+    #relyz= 160 + 1j*omega*kappa*d**2*1/12 #pazi, kappa_y doprinosi rel_z i obratno  
+    #dHdByz= 160 + 1j*omega*kappa*d**2*1/12
 
-    #relyz = (HBcurve(Babs+1e-6))/(Babs+1e-6) + 1j*omega*kappa*d**2*1/12 #Babs+1e-6
-    #dHdByz = diffHB(Babs+1e-6) + 1j*omega*kappa*d**2*1/12
+    relyz = (HBcurve(Babs+1e-6))/(Babs+1e-6) + 1j*omega*kappa*d**2*1/12 #Babs+1e-6
+    dHdByz = diffHB(Babs+1e-6) + 1j*omega*kappa*d**2*1/12
     
     rel=CF( ( (1-Kf)/mu0, 0, 0,   0, relyz/Kf, 0,  0, 0, relyz/Kf), dims=(3,3) )
     dHdB=CF( ( (1-Kf)/mu0, 0, 0,   0, dHdByz/Kf, 0,  0, 0, dHdByz/Kf), dims=(3,3) ) #?? should I divide with Kf
@@ -180,7 +180,7 @@ for i in range(1,2):
 
     #:::::::::::::::::: source current
     #f = LinearForm(fes)
-    I=4 #Amp
+    I=5.5 #Amp
     zavoj=447
     dno=-0.09
     vrh=0.01
@@ -243,10 +243,10 @@ Btang= (Bpost[1].Norm()**2+Bpost[2].Norm()**2)**0.5
 
 print('...')
 
-#p_e=3159.0*(Bpost.Norm())**2.074
+""" #p_e=3159.0*(Bpost.Norm())**2.074
 p_e = 3159.0*(Btang)**2.074
 P_eps=Integrate(p_e,mesh, order=5, definedon=defon)
-print('P_eps=',1e3*round(P_eps,4), 'mW')
+print('P_eps=',1e3*round(P_eps,4), 'mW') """
 
 #p_narrow= Kf * kappa/24 *(omega*d)**2 *(Bpost.Norm())**2 #vjerojatno treba ići kroz Kf
 p_narrow= Kf * kappa/24 *(omega*d)**2 *(Btang)**2 #vjerojatno treba ići kroz Kf
@@ -257,7 +257,16 @@ p_wide=0.5*rho*Jpost*Conj(Jpost)
 P_yz=Integrate(p_wide, mesh, order=5, definedon=defon)
 print('P_yz=', 1e3*round(abs(P_yz),4),'mW')
 
-print('P_tot=',1e3*round(abs(P_eps+P_yz),4),'mW') 
+
+B_eps=[0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6, 1.65, 1.7, 1.75, 1.8, 2.5]
+Pm3=[0, 612, 842, 1224, 1607, 2066, 2601, 3213, 3825, 4514, 5355, 5738, 6197, 6732, 7268, 7803, 8492, 9180, 10175, 11475,13158,35000]
+
+EPScurve = BSpline(2, [0]+list(B_eps), list(Pm3)) #ovo bi trebala biti instanca klase BSpline
+Peps_density = (EPScurve(Btang+1e-6))
+Peps_total=Integrate(Peps_density, mesh, order=5, definedon=defon)
+print('P_eps=',1e3*round(Peps_total,4), 'mW')
+
+print('P_tot=',1e3*round(abs(Peps_total+P_yz),4),'mW')
 
 volumen=Integrate(1,mesh, definedon=defon)
 BdV=Integrate(Bpost.Norm(), mesh, order=5, definedon=defon)
