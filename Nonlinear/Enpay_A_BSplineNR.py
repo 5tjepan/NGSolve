@@ -1,6 +1,7 @@
 from ngsolve import *
 from netgen.csg import *
 import netgen.gui
+import time
 import matplotlib.pyplot as plt
 import sys
 sys.argv = ["fun"]
@@ -13,7 +14,7 @@ def MakeGeometry():
     geometry = CSGeometry()
     box = OrthoBrick(Pnt(0,0,-dbox),Pnt(dbox,dbox,dbox)).bc("outer")
 
-    front= Plane(Pnt(tocx,tocy,-0.1), Vec(-1,0,0) ).bc("front").maxh(0.002)
+    front= Plane(Pnt(tocx,tocy,-0.1), Vec(-1,0,0) ).bc("front")#
     right= Plane(Pnt(tocx,tocy,-0.1), Vec(0,-1,0) ).bc("right")
     bot  = Plane (Pnt(tocx,tocy,-0.1), Vec(0,0,-1) ).bc("bot")
     back = Plane (Pnt(0.005,0.02,0.1), Vec(1, 0,0) ).bc("back").maxh(0.002)
@@ -21,7 +22,7 @@ def MakeGeometry():
     top  = Plane (Pnt(0.005,0.02,0.1), Vec(0,0, 1) ).bc("top")
     core = left * right * front * back * bot * top
     #core = OrthoBrick(Pnt(-0.05,-0.05,-0.2),Pnt(0.05,0.05,0.2))
-    core.maxh(0.005)
+    core.maxh(0.003)
     #front.maxh(0.01)
     core.mat("core")
     
@@ -34,7 +35,7 @@ def MakeGeometry():
             Cylinder(Pnt(0,centy,-0.2), Pnt(0,centy,0.2), rin)) * \
             OrthoBrick (Pnt(0,centy,dno),Pnt(rout,(centy+rout),vrh)))+ \
             OrthoBrick (Pnt(rin,0,dno),Pnt(rout,centy,vrh))
-    coil.maxh(0.009)
+    coil.maxh(0.005)
     coil.mat("coil")
     
     geometry.Add ((box-core-coil).mat("air"))
@@ -44,7 +45,7 @@ def MakeGeometry():
     return geometry
 
 
-ngmesh = MakeGeometry().GenerateMesh(maxh=0.4)
+ngmesh = MakeGeometry().GenerateMesh(maxh=0.15)
 #ngmesh.Save("coil.vol")
 mesh = Mesh(ngmesh)
 mesh.Curve(5)  
@@ -84,7 +85,31 @@ for k in Bvec:
 ##################
 
 
-fes = HCurl(mesh, order=1, dirichlet="outer", complex=True, nograds = False)
+def updateHCurlRegionOrder(fes, p, mat):
+     for el in fes.Elements():
+         if el.mat == mat:
+             fes.SetOrder(NodeId(ELEMENT, el.nr), p)
+             for f in el.faces:
+                 fes.SetOrder(NodeId(FACE, f.nr), p)
+
+             for ed in el.edges:
+                 fes.SetOrder(NodeId(EDGE, ed.nr), p)
+
+             for v in el.vertices:
+                 fes.SetOrder(NodeId(EDGE, v.nr), p)
+
+     fes.Update()
+
+
+graddom = [True if mat == "core" else False for mat in mesh.GetMaterials()]
+fes = HCurl(mesh, order=0, dirichlet="outer", complex=True)#, gradientdomains = graddom)
+
+updateHCurlRegionOrder(fes, 1, "core")
+
+print('fes.ndof=',fes.ndof)
+print('...free =', sum(fes.FreeDofs()))
+
+#fes = HCurl(mesh, order=1, dirichlet="outer", complex=True, nograds = False)
 mvp = fes.TrialFunction()
 alpha = fes.TestFunction()
 
@@ -94,8 +119,11 @@ oldApot = GridFunction(fes)
 
 omega=314
 #rel = 1200
+d=0.00035 #m
+Kf= 27*d/0.01 #0.945
+kappa=2e6
 rho=CF( (0.1 , 0, 0,   0, 5e-7, 0,  0, 0, 5e-7), dims=(3,3) )
-sigma=CoefficientFunction( (0.01 , 0, 0,   0, 2e6, 0,  0, 0, 2e6), dims=(3,3) )
+sigma=CoefficientFunction( (0.01 , 0, 0,   0, kappa*Kf, 0,  0, 0, kappa*Kf), dims=(3,3) )
 sig = mesh.MaterialCF({ "core" : 1 }, default=None)
 
 
@@ -105,7 +133,7 @@ errorlist=[]
 p=1.0
 
 
-for i in range(1,13):
+for i in range(1,2):
     print(f"####iteration i={i}")
     
     print('Babs=',Babs(mesh(0,0)))
@@ -114,14 +142,14 @@ for i in range(1,13):
     #relyz= Babs*500 + 1e-5
     #dHdByz= 2*Babs*500 + 1e-5
     
-    #relyz= 30 
-    #dHdByz= 30
+    relyz= 160 + 1j*omega*kappa*d**2*1/12 #pazi, kappa_y doprinosi rel_z i obratno  
+    dHdByz= 160 + 1j*omega*kappa*d**2*1/12
+
+    #relyz = (HBcurve(Babs+1e-6))/(Babs+1e-6) + 1j*omega*kappa*d**2*1/12 #Babs+1e-6
+    #dHdByz = diffHB(Babs+1e-6) + 1j*omega*kappa*d**2*1/12
     
-    relyz = HBcurve(Babs+1e-6)  #Babs+1e-6
-    dHdByz = diffHB(Babs+1e-6)
-    
-    rel=CF( ( 32000, 0, 0,   0, relyz, 0,  0, 0, relyz), dims=(3,3) )
-    dHdB=CF( ( 32000, 0, 0,   0, dHdByz, 0,  0, 0, dHdByz), dims=(3,3) )
+    rel=CF( ( (1-Kf)/mu0, 0, 0,   0, relyz/Kf, 0,  0, 0, relyz/Kf), dims=(3,3) )
+    dHdB=CF( ( (1-Kf)/mu0, 0, 0,   0, dHdByz/Kf, 0,  0, 0, dHdByz/Kf), dims=(3,3) )
 
     #rel = HBcurve(Babs)  #Babs+1e-6
     #dHdB = diffHBcurve(Babs)
@@ -141,7 +169,7 @@ for i in range(1,13):
     jacmat= BilinearForm(jac)
     jacmat.Assemble()
 
-   
+#######################   
     f = LinearForm(fes)
     I=4 #Amp
     zavoj=447
@@ -162,11 +190,17 @@ for i in range(1,13):
 
 
     ##### SOLVER
-    #solvers.BVP(bf=a, lf=f, gf=gfu, pre=None, maxsteps=2000, print=True)
+    start=time.time()
     r = f.vec + jacmat.mat * oldApot.vec #- a.mat * gfu.vec
-    Apot.vec.data = a.mat.Inverse(freedofs=fes.FreeDofs())*r
-    #sol.vec.data = a.mat.Inverse(fes.FreeDofs()) * f.vec
+    #Apot.vec.data = a.mat.Inverse(freedofs=fes.FreeDofs())*r
     
+    r_bvp = LinearForm(fes).Assemble()
+    r_bvp.vec.data += r
+    solvers.BVP(bf=a, lf=r_bvp, gf=Apot, pre=None, maxsteps=2000, print=True, needsassembling=False)
+    stop=time.time()
+    #print('duration=',stop-start)
+    #------------------
+
     #errfunc = (gfu - old)/gfu
     errfunc = (Apot - oldApot).Norm()/oldApot.Norm()
     defon = mesh.Materials('core')
@@ -186,11 +220,30 @@ print('errorlist', errorlist)
 
 Jpost = - 1j * omega*sig * sigma * Apot
 Bpost = curl(Apot)
+Btang= (Bpost[1].Norm()**2+Bpost[2].Norm()**2)**0.5
 
 print('Aform:::')
-Pow=0.5*rho*Jpost*Conj(Jpost) 
+""" Pow=0.5*rho*Jpost*Conj(Jpost) 
 Peddy=Integrate(Pow, mesh, order=5, definedon=defon)
-print('Peddy=',round(abs(Peddy),4),'W') 
+print('Peddy=',round(abs(Peddy),4),'W') """
+
+print('...')
+
+#p_e=3159.0*(Bpost.Norm())**2.074
+p_e=3159.0*(Btang)**2.074
+P_eps=Integrate(p_e,mesh, order=5, definedon=defon)
+print('P_eps=',1e3*round(P_eps,4), 'mW')
+
+#p_narrow= Kf * kappa/24 *(omega*d)**2 *(Bpost.Norm())**2 #vjerojatno treba ići kroz Kf
+p_narrow= Kf * kappa/24 *(omega*d)**2 *(Btang)**2 #vjerojatno treba ići kroz Kf
+P_xyz = Integrate(p_narrow, mesh,order=5, definedon=defon) 
+print('P_xyz=',1e3*round(P_xyz,4), 'mW')
+
+p_wide=0.5*rho*Jpost*Conj(Jpost) 
+P_yz=Integrate(p_wide, mesh, order=5, definedon=defon)
+print('P_yz=',1e3*round(abs(P_yz),4),'mW')
+
+print('P_tot=',1e3*round(abs(P_eps+P_yz),4),'mW') 
 
 volumen=Integrate(1,mesh, definedon=defon)
 BdV=Integrate(Bpost.Norm(), mesh, order=5, definedon=defon)
@@ -198,6 +251,9 @@ print('Bavg=',round(BdV/volumen, 3),'T')
 
 Draw (Bpost, mesh, "B")
 Draw (Jpost, mesh, "J")
+
+print('...')
+print('duration=', round(stop-start,1))
 
 
 #print('Babs=',Babs(mesh(0.045,0,0)))

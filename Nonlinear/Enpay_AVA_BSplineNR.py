@@ -115,11 +115,11 @@ def updateHCurlRegionOrder(fes, p, mat):
 graddom = [True if mat == "core" else False for mat in mesh.GetMaterials()]
 fsU = HCurl(mesh, order=0, dirichlet="outer|outright|outfront", complex=True, nograds = False)#, gradientdomains = graddom)
 
-updateHCurlRegionOrder(fsU, 2, "core")
+updateHCurlRegionOrder(fsU, 0, "core")
 #------------
 
 #fsU = HCurl(mesh, order=0, dirichlet="outer", complex=True, nograds = False)
-fsV = H1(mesh, order=1, dirichlet='outright', definedon='core', complex=True) #bez right!
+fsV = H1(mesh, order=2, dirichlet='outright', definedon='core', complex=True) #bez right!
 fes=fsU*fsV
 mvp, esp = fes.TrialFunction()
 alpha, phi = fes.TestFunction()
@@ -146,7 +146,7 @@ rot=CF( (0 , 0, 0,   0, 0, 1,  0, -1, 0), dims=(3,3) )
 
 
 B=curl(oldApot)
-Babs= B.Norm() 
+Babs= B.Norm()
 errorlist=[]
 p=1.0
 
