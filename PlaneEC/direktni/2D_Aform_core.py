@@ -48,10 +48,10 @@ bb=CF((0.1*y,-0.1*x))
 gfu.Set(bb, definedon=mesh.Boundaries('rub'))
 
 
-omega=314
+omega=2*pi*1
 mu0 = 1.257e-6
 rel = 200
-sigma = 2e3
+sigma = 2e4
 sig = mesh.MaterialCF({ "inner" : 1 }, default=None)
 #sigma=CoefficientFunction( (10, 0,  0, 10), dims=(2,2) )
 
@@ -80,9 +80,9 @@ E = - 1j * omega * A
 J = - 1j * omega * sigma * A *sig
 B = curl(gfu)
 
-Pow=0.5*E*Conj(J) 
-Peddy=Integrate(Pow, mesh, order=5)
-print('Peddy',Peddy)
+Pow=0.5*E*Conj(J) #E i J su naravno max vrijednosti (a ne efektivne)
+Peddy=Integrate(Pow, mesh, order=5, definedon=mesh.Materials('inner'))
+print('Peddy=',Peddy)
 
 Draw(A, mesh, "A")
 Draw (B, mesh, "B")
