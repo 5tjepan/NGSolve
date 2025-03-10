@@ -3,43 +3,31 @@ from netgen.occ import *
 
 import netgen.gui
 
-size= 0.000111 #0.0009 #0.0118 #0.0059 #0.00145 #0.00046  #0.00156 #0.0008
+size= 0.00035/1.999 #0.0009 #0.0118 #0.0059 #0.00145 #0.00046  #0.00156 #0.0008
 d=0.00035 #0.001*3
-h= d*2.0 #0.006
-core1 = MoveTo(-d/2, -h/2).Rectangle(d/4,h).Face()
+h= d*2.2 #0.006
+core1 = MoveTo(-d/2, -h/2).Rectangle(d/2,h).Face()
 core1.edges.Min(X).name = "l1"
 core1.edges.Min(Y).name = "b1"
 core1.edges.Max(Y).name = "t1"
-#air.edges.Min(X).maxh=0.1
-core2 = MoveTo(-d/4, -h/2).Rectangle(d/4,h).Face()
+
+core2 = MoveTo(0, -h/2).Rectangle(d/2,h).Face()
+core2.edges.Max(X).name = "r2"
 core2.edges.Min(Y).name = "b2"
 core2.edges.Max(Y).name = "t2"
 
-core3 = MoveTo(0, -h/2).Rectangle(d/4,h).Face()
-core3.edges.Min(Y).name = "b3"
-core3.edges.Max(Y).name = "t3"
-#air.edges.Min(X).maxh=0.1
-
-core4 = MoveTo(d/4, -h/2).Rectangle(d/4,h).Face()
-core4.edges.Max(X).name = "r4"
-core4.edges.Min(Y).name = "b4"
-core4.edges.Max(Y).name = "t4"
-
 core1.faces.name="core1"
 core2.faces.name="core2"
-core3.faces.name="core3"
-core4.faces.name="core4"
 core1.faces.col = (1, 1, 0)  #colour
-core3.faces.col = (1, 0.3, 0)  #colour
 
-geo = Glue([core1,core2,core3, core4])
+geo = Glue([core1,core2])
 
 #####################################
 
 mesh = Mesh(OCCGeometry(geo, dim=2).GenerateMesh(maxh=size, quad_dominated=True))
 
-fsU = HCurl(mesh, order=0, dirichlet="l1|t1|t2|t3|t4|b4|b3|b2|b1|r4", complex=True, nograds = False)
-fsV = H1(mesh, order=1, dirichlet="l1|r4", complex=True)
+fsU = HCurl(mesh, order=0, dirichlet="l1|t1|t2|b2|b1|r2", complex=True, nograds = False)
+fsV = H1(mesh, order=3, dirichlet="l1|r2", complex=True)
 #fsV = H1(mesh, order=1, dirichlet="l1|r4|t1|t2|t3|t4|b4|b3|b2|b1", complex=True)
 fes=fsU*fsV
 mvp, csp = fes.TrialFunction()
@@ -56,18 +44,18 @@ Apot, Tpot = sol.components
 #::::::::::::::::::::::::::::::::::::::
 
 #sig = mesh.MaterialCF({ "core|Km" : 1 }, default=0.000000001)
-B0=6e2*x+0.4
+#B0=6e2*x+0.4
 #B0=6e5*(x**2-d**2/12)+0.4
-#B0 = 0.4
+B0 = 0.4
 Draw(B0,mesh,'B0')
 
-omega=314*8
+omega=314*4
 mu0 = 1.257e-6
 
 rel = 30 #1000 
 rho= 5e-7 
 
-kh= d/4000 #d/2/sqrt(5) #size # d/4
+kh= d/2 #d/2/sqrt(5) #size # d/4
 
 rot=CF( (0 , 1,  -1, 0), dims=(2,2) )
 diry=CF((0,1))
@@ -85,7 +73,7 @@ term3b= (-1j*omega*kh/3*0 - kh**3*omega**2/(120*rel*rho)) *curl(alpha)*(rot*grad
 term4a= -kh**3*omega**2/(270*rel*rho) *curl(mvp)*(rot*grad(theta)*diry)*dx
 term4b= -kh**3*omega**2/(270*rel*rho) *curl(alpha)*(rot*grad(csp)*diry)*dx
 
-a = BilinearForm(term1+term2 + term1hg + term2hg)
+a = BilinearForm(term1+term2 + term1hg)# + term2hg)
 #a = BilinearForm(term1+term2 + term1hg+term2hg)
 a.Assemble()
 
@@ -119,7 +107,7 @@ B=curl(Apot)
 #hdiag=(Norm(J[0]*kh) + Norm(J[1]*kh))/Norm(J)
 
 #Power=0.5*rho*J*Conj(J) + 0.5* 1/18*(kh*omega)**2 /rho * (B0+B)*Conj(B0+B)
-Power=0.5*rho*J*Conj(J) + 0.5* 1/12*(kh*omega)**2 /rho * (B0+B)*Conj(B0+B)
+Power=0.5*rho*J*Conj(J) #+ 0.5* 1/12*(kh*omega)**2 /rho * (B0+B)*Conj(B0+B)
 
 RePower=0.5*omega*rel*(B+B0)*Conj(B+B0) + omega/24*(kh)**2 /rel * (J)*Conj(J)
 #qnarrow=omega/24 * d**2/nufe * Jpost*Conj(Jpost)
@@ -184,4 +172,4 @@ plt.plot(X, (B).imag(mesh(X, Y)))
 plt.plot(X, (B-x*J[1]/rel).imag(mesh(X, Y)))
 plt.plot(X, (Bfun).imag(mesh(X, Y)))
 plt.xlabel('x')
-#plt.show()
+plt.show()
