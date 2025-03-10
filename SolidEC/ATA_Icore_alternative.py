@@ -69,7 +69,7 @@ if version==1:
     term2= -1j*omega*rho*(rot*grad(csp))*(rot*grad(tau))*dx('core') + 1j*omega*(rot*grad(tau))*mvp*dx('core')
     term3=1*mvp*alpha*dx
 
-elif version==2: #ALTERNATIVNA VERZIJA::::::::::::
+elif version==2: #ALTERNATIVNA VERZIJA:::::::::::: Ova verzija nije simetricna; treba drugu jednadzbu pomnozit s -1 i bit ce
     term1=(1/mu0)*curl(mvp)*curl(alpha)*dx('air|coil') + rel*curl(mvp)*curl(alpha)*dx('core') \
     - (rot*grad(csp))*alpha*dx('core') #+ 0.1*mvp*alpha*dx('air|coil')
     term2= -1j/omega*rho*(rot*grad(csp))*(rot*grad(tau))*dx('core') + (rot*grad(tau))*mvp*dx('core')

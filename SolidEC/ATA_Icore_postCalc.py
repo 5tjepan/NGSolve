@@ -175,7 +175,7 @@ print('Bpost_avg=',Bpost_avg)
 Jlin = postfes.TrialFunction()
 gamma = postfes.TestFunction()
 
-Jposta = BilinearForm( Jlin*gamma*dx + 1e-8*grad(Jlin)[0]*grad(gamma)[0]*dx).Assemble()
+Jposta = BilinearForm( Jlin*gamma*dx + 1e-6*grad(Jlin)[0]*grad(gamma)[0]*dx).Assemble()
 #Jposta = BilinearForm( Jlin*gamma*dx).Assemble()
 Jpostf = LinearForm(J.Norm()*gamma*dx).Assemble()
 #Jpostf = LinearForm(J.Norm()*gamma*dx).Assemble()

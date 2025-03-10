@@ -169,7 +169,7 @@ for i in range(1,8):
     term2= -1j/omega*rho*(rot*grad(csp))*(rot*grad(tau))*dx('core') + (rot*grad(tau))*mvp*dx('core')
     term3=1*1e0*mvp*alpha*dx
 
-    jac= (dHdB - rel)*curl(mvp)*curl(alpha)*dx('core')
+    jac= (2+1j)/sqrt(5)*(dHdB - rel)*curl(mvp)*curl(alpha)*dx('core')
   
     a = BilinearForm(term1+term2+term3+jac)
     a.Assemble()
@@ -179,7 +179,7 @@ for i in range(1,8):
 
     #:::::::::::::::::: source current
     #f = LinearForm(fes)
-    I=0.75 #Amp
+    I=0.75*(1j+1)/1.414213562373 #Amp
     zavoj=447
     dno=-0.09
     vrh=0.01

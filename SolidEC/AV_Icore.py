@@ -1,3 +1,4 @@
+import netgen.gui
 from netgen.csg import *
 from ngsolve import *
 
@@ -97,7 +98,13 @@ Draw (Apot, mesh, "A")
 Draw (B, mesh, "B")
 #Draw (J, mesh, "J")
 
+defon = mesh.Materials('core')
+volumen=Integrate(1,mesh, definedon=defon)
+BdV=Integrate(B.Norm(), mesh, order=5, definedon=defon)
+print('Bavg=',round(BdV/volumen, 4),'T') 
 
+
+print()
 
 """ import numpy as np
 
