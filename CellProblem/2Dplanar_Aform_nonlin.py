@@ -1,28 +1,5 @@
 
 
-
-""" with open("M140.dat", "r") as file:
-    # Citanje linija iz datoteke
-    lines = file.readlines()
-
-    # Inicijalzacija praznih lista za stupce
-    stupac1 = []
-    stupac2 = []
-
-    # Iteriranje krooz svaku liniju u datoteci
-    for line in lines:
-        # Razdvajanje vrijednosti u svakoj liniji koristeći tabulator kao separator
-        vrijednosti = line.strip().split("\t")
-
-        # Dodavanje vrijednosti u odgovarajuce stupce
-        stupac1.append(vrijednosti[0])
-        stupac2.append(vrijednosti[1])
-
-#pretvaranje liste stringova u listu floatova
-Bref=list(map(float, stupac1))
-Href=list(map(float, stupac2)) """
-
-
 from ngsolve import *
 from netgen.occ import *
 import netgen.gui
