@@ -9,6 +9,10 @@ NGSolve codes and theoretical notes during the work at TU Wien, funded by the Cr
 - programski kodovi za EC modeliranje unutar volumena
 - linearni kodovi
 
+## OpenCore
+- programski kodovi usko vezani za ECP u laminiranoj jezgri otvorenoga tipa
+- geometrija i mesh dobiveni pomocu Gmsh-a, a simulacije provedene u NGSolve
+
 ## Nonlinear
 - programski kodovi za nelinearne procedure
 - testirana stvarna enpay jezgra
