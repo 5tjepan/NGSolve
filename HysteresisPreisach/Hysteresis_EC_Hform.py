@@ -307,7 +307,7 @@ while time < tend - 0.5 * dt:  #Euler time-stepping
 
         #====================
         # h i s t e r e z a 
-        Everett = Everett_atan
+        Everett = Everett_exp
         Hvec = np.array([oldgfu.vec.FV().NumPy()])
         oldHmat=np.append(prevHmatrix, Hvec, axis=0)
         Hmax=100

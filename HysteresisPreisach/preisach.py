@@ -44,7 +44,7 @@ def preisach_output(u, domindex, u_max):
 
 if __name__ == "__main__":
 
-    t= np.linspace(0,2.0,100)
+    t= np.linspace(0,2.0,400)
     H=fun(t)
     #H=39*np.sin(6.2832*t)
     #H= -300*np.cos(6.2832*t) /(0.5*t+1)
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     #---------------
 
-    Everett = Everett_exp
+    Everett = Everett_atan
 
     dominantni=FindDominantExtrema(H,Hmax)
     print('B =',preisach_output(H,dominantni,Hmax))
@@ -70,18 +70,23 @@ if __name__ == "__main__":
 
     #print('B=',B)
     Bscaled=[B[i]*100 for i in range(len(B))]
-    plt.plot(t,H)
+    plt.plot(t,H, label=r'$H(t)$')
     plt.plot(t[dominantni], H[dominantni], marker='o', linestyle='')
-    plt.plot(t,Bscaled)
+    plt.plot(t,Bscaled, label=r'$B(t)$')
+    plt.xlabel(r'$t$', fontsize=15)
+    plt.ylabel(r'$f(t)$', fontsize=15)
+    plt.legend()
+    plt.grid()
     plt.show()
 
     plt.plot(H,B)
     plt.grid()
     plt.axhline(0, color='black', linewidth=0.8, linestyle='--')  # Oznaka x-osi
     plt.axvline(0, color='black', linewidth=0.8, linestyle='--')  # Oznaka y-osi
-    plt.xlabel('H')
-    plt.ylabel('B')
+    plt.xlabel(r'$H$', fontsize=15)
+    plt.ylabel(r'$B$', fontsize=15)
     plt.show()
+
 
 
 
