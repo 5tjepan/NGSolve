@@ -87,7 +87,7 @@ def TimeStepping(invmstar, initial_cond = None, t0 = 0, tend = 2,
         t.Set(time)
         #print(bc(mesh(0.198, 0.0)))
         gfuD.Set(bc,definedon=mesh.Boundaries('rub')) #vrem. ovisan bc (t.Set(time))
-        res = m.mat * gfu.vec - mstar *gfuD.vec
+        res = m.mat * gfu.vec - mstar *gfuD.vec #gfu jos uvijek ima vrijednost iz prethodne iteracije
         gfu.vec.data = gfuD.vec + invmstar * res #uoci znak "=" umjesto "+="
         DgfuDt.vec.data = (gfu.vec - gfuPrev.vec)
         gfuPrev.vec.data=gfu.vec
