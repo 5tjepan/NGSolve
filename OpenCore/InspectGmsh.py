@@ -22,9 +22,10 @@ print(mesh.GetBoundaries())
 #----------------------
 
 
-test=H1(mesh, dirichlet='gamaB')
+#test=H1(mesh, dirichlet='gamaB')
+test=H1(mesh, dirichlet='tblr')
 #test=H1(mesh, dirichlet='topleft')
 gft=GridFunction(test)
-gft.Set(1,BND)
-Draw(gft)
+gft.Set(2,BND)
+Draw(gft,mesh,'gft')
 
