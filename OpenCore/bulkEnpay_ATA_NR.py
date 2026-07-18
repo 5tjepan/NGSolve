@@ -92,7 +92,7 @@ old = GridFunction(fes)
 Apot, Tpot = gfu.components
 oldApot, oldTpot = old.components
 
-nu_fe=30.0
+nu_fe=30.0  #420
 omega=314
 d=0.00035 #m
 Kf= 27*d/0.01 #0.945
@@ -130,7 +130,7 @@ for i in range(1,2):
     term1=(1/mu0)*curl(mvp)*curl(alpha)*dx('air|coil') + rel*curl(mvp)*curl(alpha)*dx('core') \
     - (rot*grad(csp))*alpha*dx('core') #+ 0.1*mvp*alpha*dx('air|coil')
     term2= -1j/omega*rho*(rot*grad(csp))*(rot*grad(tau))*dx('core') + (rot*grad(tau))*mvp*dx('core') #tau*CF((1,0,0))*curl(mvp)*dx('core') #
-    rho_eff = 0*d**2 /12 /nu_fe
+    rho_eff = 1*d**2 /12 /nu_fe/Kf
     term3=1j*1e2*mvp*alpha*dx + rho_eff *(rot*grad(csp))*(rot*grad(tau))*dx('core')
 
     #jac= (dHdB - rel)*curl(mvp)*curl(alpha)*dx('core')
@@ -172,7 +172,7 @@ for i in range(1,2):
     
     r_bvp = LinearForm(fes).Assemble()
     r_bvp.vec.data += r
-    solvers.BVP(bf=a, lf=r_bvp, gf=gfu, pre=None, maxsteps=200, print=True, needsassembling=False)
+    solvers.BVP(bf=a, lf=r_bvp, gf=gfu, pre=None, maxsteps=200, print=True, inverse="pardiso", needsassembling=False)
     #----------------------
 
 

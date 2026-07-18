@@ -1,2 +1,3 @@
 *.ini
 **/ngs.ini
+__pycache__/

@@ -64,7 +64,7 @@ for i in range(1,2):
     
     #relyz = (HBcurve(Babs+1e-6))/(Babs+1e-6) #+ 1j*(HBcurve2(Babs+1e-6))/(Babs+1e-6) #PAZI
     #dHdByz = diffHB(Babs+1e-6) #+ 1j*diffHB2(Babs+1e-6) 
-    muyz= 1/30 #(30.0 + 1j*omega*kappa*d**2*1/12 ) #5000*mu0
+    muyz= 1/(420 + 1j*omega*kappa*d**2*1/12) #1/30 #(30.0 + 1j*omega*kappa*d**2*1/12 ) #5000*mu0
     mucore=CF( ( mu0/(1-Kf), 0, 0,  0, muyz*Kf, 0,  0, 0, muyz*Kf), dims=(3,3) )
     muair=CF( ( mu0, 0, 0,  0, mu0, 0,  0, 0, mu0), dims=(3,3) )
     
@@ -114,7 +114,7 @@ for i in range(1,2):
     
     r_bvp = LinearForm(fes).Assemble()
     r_bvp.vec.data += r
-    solvers.BVP(bf=a, lf=r_bvp, gf=gfu, pre=None, maxsteps=4000, print=True, needsassembling=False)
+    solvers.BVP(bf=a, lf=r_bvp, gf=gfu, pre=None, maxsteps=4000, print=True, inverse="pardiso", needsassembling=False)
     #----------------------
 
 

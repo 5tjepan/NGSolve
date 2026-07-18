@@ -82,7 +82,7 @@ def Everett2(a,b):
     return y
 
 def Everett_exp(a,b):
-    c=0.25
+    c=0.26
     y= 1/(c + np.exp(-0.03*a) + np.exp(+0.03*b) ) - \
           1/(c + np.exp(+0.03*a) + np.exp(-0.03*b) )
     return y
